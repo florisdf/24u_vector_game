@@ -8,12 +8,24 @@
 <body>
   <svg width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
     <g transform="translate(50,50),scale(2)" fill="white" stroke="black" stroke-width="3" stroke-linecap="round">
-      <path id="romp" d="M 0,0 v 40"/>
-      <circle id="hoofd" r="10" x="0" y="0"/>
-      <path id="linkerarm" transform-origin="0 20" transform="rotate(-30)" d="M 0,20 v 20"/>
-      <path id="rechterarm" transform-origin="0 20" transform="rotate(30)" d="M 0,20 v 20"/>
-      <path id="linkerbeen" transform-origin="0 40" transform="rotate(-15)"  d="M 0,40 v 30"/>
-      <path id="rechterbeen" transform-origin="0 40" transform="rotate(15)"  d="M 0,40 v 30"/>
+      <g id="romp">
+        <path d="M 0,0 v 40"/>
+      </g>
+      <g id="hoofd">
+        <circle r="10" x="0" y="0"/>
+      </g>
+      <g id="linkerarm" transform-origin="0 20" transform="rotate(-30)">
+        <path d="M 0,20 v 20"/>
+      </g>
+      <g id="rechterarm" transform-origin="0 20" transform="rotate(30)">
+        <path d="M 0,20 v 20"/>
+      </g>
+      <g id="linkerbeen" transform-origin="0 40" transform="rotate(-15)">
+         <path d="M 0,40 v 30"/>
+      </g>
+      <g id="rechterbeen" transform-origin="0 40" transform="rotate(15)">
+         <path d="M 0,40 v 30"/>
+      </g>
     </g>
   </svg>
 </body>
