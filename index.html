@@ -72,7 +72,6 @@
           updateView();
         }
       } else {
-        GAME.prevTime = GAME.time;
         window.requestAnimationFrame(step);
       }
     }
@@ -104,9 +103,9 @@
 
       if (GAME.startTime === null) {
         GAME.startTime = timestamp;
-        GAME.prevTime = timestamp;
       }
 
+      GAME.prevTime = GAME.time;
       GAME.time = timestamp - GAME.startTime;
     }
 
