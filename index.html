@@ -63,8 +63,22 @@
     levenOrig.remove();
 
     function step(timestamp) {
-      setTime(timestamp);
+      updateModel(timestamp);
+      updateView();
+  
+      if (isGameOver()) {
+        if (isHighScore()) {
+          saveHighScore();
+          updateView();
+        }
+      } else {
+        GAME.prevTime = GAME.time;
+        window.requestAnimationFrame(step);
+      }
+    }
 
+    function updateModel(timestamp) {
+      setTime(timestamp);
       updatePlayerPosition();
       removeOldObstacles();
 
@@ -75,22 +89,14 @@
       if (detectCollision()) {
         removeLeven();
       }
+    }
 
+    function updateView() {
       drawObstacles();
       drawScore();
       drawHighScore();
       drawLevens();
       drawCreature();
-  
-      if (isGameOver()) {
-        if (isHighScore()) {
-          saveHighScore();
-          drawHighScore();
-        }
-      } else {
-        GAME.prevTime = GAME.time;
-        window.requestAnimationFrame(step);
-      }
     }
 
     function setTime(timestamp) {
