@@ -7,181 +7,269 @@
 
 <body>
   <div id="score">score</div>
-  <svg width="1000" height="500" xmlns="http://www.w3.org/2000/svg">
-    <g id="tekening" transform="translate(0,400)">
-      <g id="wezen" fill="white" stroke="black" stroke-width="3" stroke-linecap="round">
-        <g id="linkerarm" transform-origin="0 20" transform="rotate(-30)">
-          <path d="M 0,20 v 20" stroke="gray"/>
-        </g>
-        <g id="linkerbeen" transform-origin="0 40" transform="rotate(-15)">
-           <path d="M 0,40 v 30" stroke="gray"/>
-         </g>
-        <g id="romp">
-          <path d="M 0,0 v 40"/>
-        </g>
-        <g id="hoofd">
-          <circle r="10" x="0" y="0"/>
-        </g>
-        <g id="rechterarm" transform-origin="0 20" transform="rotate(30)">
-          <path d="M 0,20 v 20"/>
-        </g>
-        <g id="rechterbeen" transform-origin="0 40" transform="rotate(15)">
-           <path d="M 0,40 v 30"/>
-        </g>
+  <div id="high-score">high score</div>
+  <svg id="tekening" xmlns="http://www.w3.org/2000/svg">
+    <g id="wezen" fill="white" stroke="black" stroke-width="3" stroke-linecap="round">
+      <g id="linkerarm" transform-origin="0 20" transform="rotate(-30)">
+        <path d="M 0,20 v 20" stroke="gray"/>
       </g>
-      <g id="obstakel">
-        <circle r="5" fill="red"/>
+      <g id="linkerbeen" transform-origin="0 40" transform="rotate(-15)">
+         <path d="M 0,40 v 30" stroke="gray"/>
+       </g>
+      <g id="romp">
+        <path d="M 0,0 v 40"/>
       </g>
+      <g id="hoofd">
+        <circle r="10" x="0" y="0"/>
+      </g>
+      <g id="rechterarm" transform-origin="0 20" transform="rotate(30)">
+        <path d="M 0,20 v 20"/>
+      </g>
+      <g id="rechterbeen" transform-origin="0 40" transform="rotate(15)">
+         <path d="M 0,40 v 30"/>
+      </g>
+    </g>
+    <g id="obstakel">
+      <circle r="5" fill="red"/>
+    </g>
+    <g id="leven">
+      <circle r="6" fill="green"/>
     </g>
   </svg>
   <script>
-    const freq = 1.3 * 2*Math.PI;
-    const ampArm = 30;
-    const ampBeen = 15;
-    const ampWezen = 5;
+    const SWING_FREQ = 1.3 * 2*Math.PI;
+    const ARM_AMPL = 30;
+    const BEEN_AMPL = 15;
 
-    const windowWidth = 1000;
-    const minObstacleDist = 300;
-    const jumpHeight = 50;
-    const jumpDuration = 0.5;
+    const WINDOW_WIDTH = 800;
+    const WINDOW_HEIGHT = 600;
+    const MIN_OBST_DIST = 300;
+    const JUMP_HEIGHT = 50;
+    const JUMP_DURATION = 0.5;
 
-    const score = document.getElementById("score")
-    const tekening = document.getElementById("tekening")
-    const lArm = document.getElementById("linkerarm")
-    const rArm = document.getElementById("rechterarm")
-    const lBeen = document.getElementById("linkerbeen")
-    const rBeen = document.getElementById("rechterbeen")
-    const wezen = document.getElementById("wezen")
-    const obstakelOrig = document.getElementById("obstakel")
+    const tekening = document.getElementById("tekening");
+    tekening.setAttribute("width", WINDOW_WIDTH);
+    tekening.setAttribute("height", WINDOW_HEIGHT);
+    tekening.setAttribute("viewBox", `${0} ${-WINDOW_HEIGHT/2} ${WINDOW_WIDTH} ${WINDOW_HEIGHT}`);
 
     // Maak kopie van obstakel en verwijder oorspronkelijke uit tekening
+    const obstakelOrig = document.getElementById("obstakel");
     const obstakel = obstakelOrig.cloneNode(true);
     obstakelOrig.remove();
 
-    let start, prevTime;
+    // Doe hetzelfde voor het leven-tekeningetje
+    const levenOrig = document.getElementById("leven");
+    const leven = levenOrig.cloneNode(true);
+    levenOrig.remove();
 
     function step(timestamp) {
-      if (start === undefined) {
-        start = timestamp;
-        prevTime = timestamp;
+      setTime(timestamp);
+
+      updatePlayerPosition();
+      removeOldObstacles();
+
+      if (shouldAddNewObstacle()) {
+        addNewObstacle();
       }
 
-      let t = (timestamp - start)/1000;
-      const dt = (timestamp - prevTime)/1000;
-
-      if (GAME_STATE.gameOver) {
-        GAME_STATE.speed = 0;
-        t = prevTime;
+      if (detectCollision()) {
+        removeLeven();
       }
 
-      // Update position
-      GAME_STATE.x += dt * GAME_STATE.speed;
-      GAME_STATE.y = - jumpArc(t);
-
-      // Update game state obstacles
-      // Verwijder obstakels die buiten het window vallen
-      GAME_STATE.obstacles = GAME_STATE.obstacles.filter(
-        o => {
-          if (o.x < GAME_STATE.x - windowWidth/2) {
-            o.el.remove();
-            return false;
-          }
-          return true;
-      });
-      // Voeg eventueel een nieuw obstakel toe, net buiten het window
-      if (
-          GAME_STATE.obstacles.length === 0
-          || (
-            GAME_STATE.x + windowWidth/2
-            - GAME_STATE.obstacles[GAME_STATE.obstacles.length - 1].x
-            > minObstacleDist
-          )) {
-        const newObs = obstakel.cloneNode(true);
-        tekening.appendChild(newObs);
-        
-        GAME_STATE.obstacles.push({
-          x: GAME_STATE.x + windowWidth/2 + Math.random()*minObstacleDist,
-          y: 0,
-          el: newObs,
-          collided: false,
-        });
-      }
-
-      // Collision detection
-      GAME_STATE.obstacles.forEach(o => {
-        const oBox = o.el.getBBox();
-        if (
-          GAME_STATE.x >= o.x
-            && GAME_STATE.x < o.x + oBox.width
-            && GAME_STATE.y > o.y - oBox.height
-            && GAME_STATE.y <= o.y
-        ) {
-          GAME_STATE.gameOver = true;
-        }
-      });
-
-      // Update obstakel elements
-      GAME_STATE.obstacles.forEach(o => {
-        o.el.setAttribute("transform", `translate(${o.x - GAME_STATE.x + windowWidth/2},${o.y - o.el.getBBox().height})`);
-      });
-
-      // Toon score
-      score.innerHTML = `${GAME_STATE.gameOver ? 'GAME OVER! Score: ' : ''}${Math.round(GAME_STATE.x / 100)}`;
-
-      // Shift wezen
-      wezen.setAttribute("transform", `translate(${windowWidth/2}, ${GAME_STATE.y - wezen.getBBox().height})`);
-
-      // Animeer wezen
-      const rArmAngle = ampArm * Math.sin(freq * t);
-      const lArmAngle = ampArm * Math.sin(freq * t + Math.PI);
-      const rBeenAngle = ampBeen * Math.sin(freq * t + Math.PI);
-      const lBeenAngle = ampBeen * Math.sin(freq * t);
-
-      lArm.setAttribute("transform", `rotate(${lArmAngle})`);
-      rArm.setAttribute("transform", `rotate(${rArmAngle})`);
-      lBeen.setAttribute("transform", `rotate(${lBeenAngle})`);
-      rBeen.setAttribute("transform", `rotate(${rBeenAngle})`);
+      drawObstacles();
+      drawScore();
+      drawHighScore();
+      drawLevens();
+      drawCreature();
   
-      prevTime = timestamp;
-      if (!GAME_STATE.gameOver) {
+      if (isGameOver()) {
+        if (isHighScore()) {
+          saveHighScore();
+          drawHighScore();
+        }
+      } else {
+        GAME.prevTime = GAME.time;
         window.requestAnimationFrame(step);
       }
     }
 
-    let jumpStart, prevJumping;
+    function setTime(timestamp) {
+      timestamp /= 1000;
+
+      if (GAME.startTime === null) {
+        GAME.startTime = timestamp;
+        GAME.prevTime = timestamp;
+      }
+
+      GAME.time = timestamp - GAME.startTime;
+    }
+
     function jumpArc(time) {
-      if (!GAME_STATE.jumping) {
-        prevJumping = false;
+      if (!GAME.jumping) {
+        GAME.prevJumping = false;
         return 0;
       }
-      if (!prevJumping) {
-        jumpStart = time;
-        prevJumping = true;
+      if (!GAME.prevJumping) {
+        GAME.jumpStart = GAME.time;
+        GAME.prevJumping = true;
       }
-      const t = time - jumpStart;
+      const t = GAME.time - GAME.jumpStart;
 
-      const y = -4 * jumpHeight/Math.pow(jumpDuration, 2) * Math.pow(t, 2) + 4*jumpHeight/jumpDuration * t;
+      const y = -4 * JUMP_HEIGHT/Math.pow(JUMP_DURATION, 2) * Math.pow(t, 2) + 4*JUMP_HEIGHT/JUMP_DURATION * t;
       if (y < 0) {
-        GAME_STATE.jumping = false;
+        GAME.jumping = false;
         return 0;
       }
       return y;
     }
 
+    function detectCollision() {
+      let isCollided = false;
+
+      GAME.obstacles.forEach(o => {
+        if (
+          GAME.x >= o.x
+            && GAME.x < o.x + o.width
+            && GAME.y > o.y - o.height
+            && GAME.y <= o.y
+            && !o.collided
+            && !isCollided
+        ) {
+          isCollided = true;
+          o.collided = true;
+        }
+      });
+
+      return isCollided;
+    }
+
+    function isGameOver() {
+      return GAME.levens.length === 0;
+    }
+
+    function removeOldObstacles() {
+      GAME.obstacles = GAME.obstacles.filter(
+        o => {
+          if (o.x < GAME.x - WINDOW_WIDTH/2) {
+            o.el.remove();
+            return false;
+          }
+          return true;
+        }
+      );
+    }
+
+    function shouldAddNewObstacle() {
+      return GAME.obstacles.length === 0
+        || (
+          GAME.x + WINDOW_WIDTH/2
+          - GAME.obstacles[GAME.obstacles.length - 1].x
+          > MIN_OBST_DIST
+      );
+    }
+
+    function addNewObstacle() {
+      const newObs = obstakel.cloneNode(true);
+      tekening.appendChild(newObs);
+      const bbox = newObs.getBBox();
+
+      GAME.obstacles.push({
+        x: GAME.x + WINDOW_WIDTH/2 + Math.random()*MIN_OBST_DIST,
+        y: 0,
+        el: newObs,
+        width: bbox.width,
+        height: bbox.height,
+        collided: false,
+      });
+    }
+
+    function updatePlayerPosition() {
+      const dt = GAME.time - GAME.prevTime;
+      GAME.x += dt * GAME.speed;
+      GAME.y = - jumpArc(GAME.time);
+    }
+
+    function removeLeven() {
+      const el = GAME.levens.pop();
+      el.remove();
+    }
+
+    function drawObstacles() {
+      GAME.obstacles.forEach(o => {
+        o.el.setAttribute("transform", `translate(${o.x - GAME.x + WINDOW_WIDTH/2},${o.y - o.el.getBBox().height})`);
+      });
+    }
+
+    function drawLevens() {
+      GAME.levens.forEach((el, i) => {
+        const bbox = el.getBBox();
+        el.setAttribute("transform", `translate(${WINDOW_WIDTH - 2*(i + 1)*bbox.width},${-WINDOW_HEIGHT/2 + bbox.height})`);
+      });
+    }
+
+    function drawScore() {
+      const score = document.getElementById("score")
+      score.innerHTML = `${isGameOver() ? 'GAME OVER! Score: ' : ''}${getScore()}`;
+    }
+
+    function drawHighScore() {
+      const highScoreEl = document.getElementById("high-score");
+      const highScore = getHighScore();
+
+      if (highScore !== null) {
+        highScoreEl.innerHTML = `High score: ${highScore}`;
+      }
+    }
+
+    function drawCreature() {
+      const lArm = document.getElementById("linkerarm")
+      const rArm = document.getElementById("rechterarm")
+      const lBeen = document.getElementById("linkerbeen")
+      const rBeen = document.getElementById("rechterbeen")
+      const wezen = document.getElementById("wezen")
+
+      wezen.setAttribute("transform", `translate(${WINDOW_WIDTH/2}, ${GAME.y - wezen.getBBox().height})`);
+
+      // Animeer wezen
+      const rArmAngle = ARM_AMPL * Math.sin(SWING_FREQ * GAME.time);
+      const lArmAngle = ARM_AMPL * Math.sin(SWING_FREQ * GAME.time + Math.PI);
+      const rBeenAngle = BEEN_AMPL * Math.sin(SWING_FREQ * GAME.time + Math.PI);
+      const lBeenAngle = BEEN_AMPL * Math.sin(SWING_FREQ * GAME.time);
+
+      lArm.setAttribute("transform", `rotate(${lArmAngle})`);
+      rArm.setAttribute("transform", `rotate(${rArmAngle})`);
+      lBeen.setAttribute("transform", `rotate(${lBeenAngle})`);
+      rBeen.setAttribute("transform", `rotate(${rBeenAngle})`);
+    }
+
     function jump() {
-      GAME_STATE.jumping = true;
+      GAME.jumping = true;
     }
 
     function resetGame() {
-      if (GAME_STATE.obstacles !== undefined) {
-        GAME_STATE.obstacles.forEach(o => o.el.remove());
+      if (GAME.obstacles !== undefined) {
+        GAME.obstacles.forEach(o => o.el.remove());
       }
-      GAME_STATE.x = 0;
-      GAME_STATE.y = 0;
-      GAME_STATE.speed = 500;
-      GAME_STATE.obstacles = [];
-      GAME_STATE.gameOver = false;
-      GAME_STATE.jumping = false;
+      if (GAME.levens !== undefined) {
+        GAME.levens.forEach(el => el.remove());
+      }
+      GAME.x = 0;
+      GAME.y = 0;
+      GAME.speed = 500;
+      GAME.obstacles = [];
+      GAME.levens = Array(3).fill(null).map(x => {
+        const el = leven.cloneNode(true);
+        tekening.appendChild(el);
+        return el;
+      });
+
+      GAME.jumping = false;
+      GAME.prevJumping = false;
+      GAME.jumpStart = null;
+
+      GAME.time = null;
+      GAME.startTime = null;
+      GAME.prevTime = null;
     }
 
     function restartGame() {
@@ -189,15 +277,37 @@
       window.requestAnimationFrame(step);
     }
 
+    function getScore() {
+      return Math.round(GAME.x / 100);
+    }
+
+    function saveHighScore() {
+      document.cookie = `highScore=${getScore()}`;
+    }
+
+    function isHighScore() {
+      return getScore() > getHighScore();
+    }
+
+    function getHighScore() {
+      const cookieValue = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("highScore="))
+        ?.split("=")[1];
+      return cookieValue !== undefined ?
+          parseInt(cookieValue)
+          : null;
+    }
+
     function handleClick() {
-      if (GAME_STATE.gameOver) {
+      if (isGameOver()) {
         restartGame();
       } else {
         jump();
       }
     }
 
-    const GAME_STATE = {};
+    const GAME = {};
 
     document.addEventListener('touchstart', handleClick);
     document.addEventListener('keyup', event => {
