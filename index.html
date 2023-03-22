@@ -227,24 +227,24 @@
     }
 
     function drawCreature() {
-      const lArm = document.getElementById("linkerarm")
-      const rArm = document.getElementById("rechterarm")
-      const lBeen = document.getElementById("linkerbeen")
-      const rBeen = document.getElementById("rechterbeen")
-      const wezen = document.getElementById("wezen")
-
+      const wezen = document.getElementById("wezen");
       wezen.setAttribute("transform", `translate(${WINDOW_WIDTH/2}, ${GAME.y - wezen.getBBox().height})`);
 
-      // Animeer wezen
-      const rArmAngle = ARM_AMPL * Math.sin(SWING_FREQ * GAME.time);
-      const lArmAngle = ARM_AMPL * Math.sin(SWING_FREQ * GAME.time + Math.PI);
-      const rBeenAngle = BEEN_AMPL * Math.sin(SWING_FREQ * GAME.time + Math.PI);
-      const lBeenAngle = BEEN_AMPL * Math.sin(SWING_FREQ * GAME.time);
-
-      lArm.setAttribute("transform", `rotate(${lArmAngle})`);
-      rArm.setAttribute("transform", `rotate(${rArmAngle})`);
-      lBeen.setAttribute("transform", `rotate(${lBeenAngle})`);
+      const rBeen = document.getElementById("rechterbeen");
+      const rBeenAngle = BEEN_AMPL * Math.sin(SWING_FREQ * GAME.time);
       rBeen.setAttribute("transform", `rotate(${rBeenAngle})`);
+
+      const lBeen = document.getElementById("linkerbeen");
+      const lBeenAngle = BEEN_AMPL * Math.sin(SWING_FREQ * GAME.time + Math.PI);
+      lBeen.setAttribute("transform", `rotate(${lBeenAngle})`);
+
+      const rArm = document.getElementById("rechterarm");
+      const rArmAngle = ARM_AMPL * Math.sin(SWING_FREQ * GAME.time + Math.PI);
+      rArm.setAttribute("transform", `rotate(${rArmAngle})`);
+
+      const lArm = document.getElementById("linkerarm");
+      const lArmAngle = ARM_AMPL * Math.sin(SWING_FREQ * GAME.time);
+      lArm.setAttribute("transform", `rotate(${lArmAngle})`);
     }
 
     function jump() {
