@@ -6,7 +6,7 @@
 </head>
 
 <body>
-  <span id="score">score</span>
+  <div id="score">score</div>
   <svg width="1000" height="500" xmlns="http://www.w3.org/2000/svg">
     <g id="tekening" transform="translate(0,400)">
       <g id="wezen" fill="white" stroke="black" stroke-width="3" stroke-linecap="round">
@@ -41,19 +41,9 @@
     const ampWezen = 5;
 
     const windowWidth = 1000;
-    const pObstacle = 0.1;
-    const minObstacleDist = 100;
+    const minObstacleDist = 300;
     const jumpHeight = 50;
     const jumpDuration = 0.5;
-
-    const GAME_STATE = {
-      x: 0,
-      y: 0,
-      speed: 100,
-      obstacles: [],
-      gameOver: false,
-      jumping: false,
-    };
 
     const score = document.getElementById("score")
     const tekening = document.getElementById("tekening")
@@ -99,18 +89,18 @@
           return true;
       });
       // Voeg eventueel een nieuw obstakel toe, net buiten het window
-      if (Math.random() < pObstacle && (
+      if (
           GAME_STATE.obstacles.length === 0
           || (
             GAME_STATE.x + windowWidth/2
             - GAME_STATE.obstacles[GAME_STATE.obstacles.length - 1].x
             > minObstacleDist
-          ))) {
+          )) {
         const newObs = obstakel.cloneNode(true);
         tekening.appendChild(newObs);
         
         GAME_STATE.obstacles.push({
-          x: GAME_STATE.x + windowWidth/2,
+          x: GAME_STATE.x + windowWidth/2 + Math.random()*minObstacleDist,
           y: 0,
           el: newObs,
           collided: false,
@@ -177,11 +167,46 @@
       }
       return y;
     }
-    document.body.addEventListener('click', function () {
-       GAME_STATE.jumping = true;
+
+    function jump() {
+      GAME_STATE.jumping = true;
+    }
+
+    function resetGame() {
+      if (GAME_STATE.obstacles !== undefined) {
+        GAME_STATE.obstacles.forEach(o => o.el.remove());
+      }
+      GAME_STATE.x = 0;
+      GAME_STATE.y = 0;
+      GAME_STATE.speed = 500;
+      GAME_STATE.obstacles = [];
+      GAME_STATE.gameOver = false;
+      GAME_STATE.jumping = false;
+    }
+
+    function restartGame() {
+      resetGame();
+      window.requestAnimationFrame(step);
+    }
+
+    function handleClick() {
+      if (GAME_STATE.gameOver) {
+        restartGame();
+      } else {
+        jump();
+      }
+    }
+
+    const GAME_STATE = {};
+
+    document.addEventListener('touchstart', handleClick);
+    document.addEventListener('keyup', event => {
+      if (event.code === 'Space') {
+        handleClick()
+      }
     });
 
-    window.requestAnimationFrame(step);
+    restartGame();
   </script>
 </body>
 </html>
