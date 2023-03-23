@@ -1,27 +1,28 @@
+const tekening = document.getElementById("tekening");
+const creature = document.getElementById("wezen");
+const obstakelOrig = document.getElementById("obstakel");
+const levenOrig = document.getElementById("leven");
+
+const origCreatureBBox = creature.getBBox();
+const origObstakelBBox = obstakelOrig.getBBox();
+const origLevenBBox = levenOrig.getBBox();
+
+const WINDOW_WIDTH = tekening.getAttribute("width");
+const WINDOW_HEIGHT = tekening.getAttribute("height");
+const JUMP_HEIGHT = origObstakelBBox.height*2;
+const JUMP_DURATION = 0.5;
 const SWING_FREQ = 1.3 * 2*Math.PI;
 const ARM_AMPL = 30;
 const BEEN_AMPL = 15;
+const MIN_OBST_DIST = origObstakelBBox.width * 15;
+const SPEED = WINDOW_WIDTH/2;
 
-const WINDOW_WIDTH = 800;
-const WINDOW_HEIGHT = 600;
-const MIN_OBST_DIST = 300;
-const JUMP_HEIGHT = 50;
-const JUMP_DURATION = 0.5;
-
-const tekening = document.getElementById("tekening");
-tekening.setAttribute("width", WINDOW_WIDTH);
-tekening.setAttribute("height", WINDOW_HEIGHT);
-tekening.setAttribute("viewBox", `${0} ${-WINDOW_HEIGHT/2} ${WINDOW_WIDTH} ${WINDOW_HEIGHT}`);
-
-// Maak kopie van obstakel en verwijder oorspronkelijke uit tekening
-const obstakelOrig = document.getElementById("obstakel");
 const obstakel = obstakelOrig.cloneNode(true);
-obstakelOrig.remove();
-
-// Doe hetzelfde voor het leven-tekeningetje
-const levenOrig = document.getElementById("leven");
 const leven = levenOrig.cloneNode(true);
+
+obstakelOrig.remove();
 levenOrig.remove();
+tekening.setAttribute("viewBox", `${0} ${-WINDOW_HEIGHT/2} ${WINDOW_WIDTH} ${WINDOW_HEIGHT}`);
 
 function step() {
   updateModel();
@@ -51,6 +52,27 @@ function updateView() {
   updateHighScoreView();
   updateLevensView();
   updateCreatureView();
+}
+
+function initView() {
+  const rBeen = document.getElementById("rechterbeen");
+  const lBeen = document.getElementById("linkerbeen");
+  const rArm = document.getElementById("rechterarm");
+  const lArm = document.getElementById("linkerarm");
+
+  [rBeen, lBeen, rArm, lArm].forEach(el => {
+    const bbox = el.getBBox();
+    el.setAttribute("transform-origin", `${bbox.x + bbox.width/2} ${bbox.y + bbox.height/10}`);
+  })
+
+  creature.setAttribute("transform-origin", `${origCreatureBBox.x + origCreatureBBox.width/2} ${origCreatureBBox.y + origCreatureBBox.height}`);
+
+  const scoreEl = document.getElementById("score");
+  const hScoreEl = document.getElementById("high-score");
+  const scoreElBBox = scoreEl.getBBox();
+  const hScoreElBBox = hScoreEl.getBBox();
+  scoreEl.setAttribute("transform", `translate(${-scoreElBBox.x + WINDOW_WIDTH - 1.5*scoreElBBox.width},${-scoreElBBox.y + WINDOW_HEIGHT - 4*scoreElBBox.height})`);
+  hScoreEl.setAttribute("transform", `translate(${-hScoreElBBox.x + WINDOW_WIDTH - 1.5*scoreElBBox.width},${-hScoreElBBox.y + WINDOW_HEIGHT - 2*scoreElBBox.height})`)
 }
 
 function updateModelTime() {
@@ -166,14 +188,14 @@ function removeLeven() {
 
 function updateObstaclesView() {
   MODEL.obstacles.forEach(o => {
-    o.el.setAttribute("transform", `translate(${o.x - MODEL.x + WINDOW_WIDTH/2},${o.y - o.el.getBBox().height})`);
+    o.el.setAttribute("transform", `translate(${o.x - MODEL.x + WINDOW_WIDTH/2 - origObstakelBBox.x},${o.y - o.el.getBBox().height - origObstakelBBox.y})`);
   });
 }
 
 function updateLevensView() {
   MODEL.levens.forEach((el, i) => {
     const bbox = el.getBBox();
-    el.setAttribute("transform", `translate(${WINDOW_WIDTH - 2*(i + 1)*bbox.width},${-WINDOW_HEIGHT/2 + bbox.height})`);
+    el.setAttribute("transform", `translate(${WINDOW_WIDTH - 2*(i + 1)*bbox.width - origLevenBBox.x},${-WINDOW_HEIGHT/2 + bbox.height - origLevenBBox.y})`);
   });
 }
 
@@ -198,7 +220,7 @@ function updateCreatureView() {
 
 function updateCreaturePositionView() {
   const wezen = document.getElementById("wezen");
-  wezen.setAttribute("transform", `translate(${WINDOW_WIDTH/2}, ${MODEL.y - wezen.getBBox().height})`);
+  wezen.setAttribute("transform", `translate(${WINDOW_WIDTH/2 - origCreatureBBox.x}, ${MODEL.y - origCreatureBBox.y - wezen.getBBox().height})`);
 }
 
 function jump() {
@@ -214,7 +236,7 @@ function resetGame() {
   }
   MODEL.x = 0;
   MODEL.y = 0;
-  MODEL.speed = 500;
+  MODEL.speed = SPEED;
   MODEL.obstacles = [];
   MODEL.levens = Array(3).fill(null).map(x => {
     const el = leven.cloneNode(true);
@@ -279,4 +301,5 @@ document.addEventListener('keyup', event => {
   }
 });
 
+initView();
 restartGame();
