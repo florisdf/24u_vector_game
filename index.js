@@ -33,7 +33,7 @@ function step() {
       saveHighScore();
       updateView();
     }
-    window.alert("GAME OVER!")
+    window.requestAnimationFrame(() => window.alert("GAME OVER!"));
   } else {
     window.requestAnimationFrame(step);
   }
