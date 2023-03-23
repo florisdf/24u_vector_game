@@ -6,8 +6,8 @@
 </head>
 
 <body>
-  <div id="score">score</div>
-  <div id="high-score">high score</div>
+  <div id="score"></div>
+  <div id="high-score"></div>
   <svg id="tekening" xmlns="http://www.w3.org/2000/svg">
     <g id="wezen" fill="white" stroke="black" stroke-width="3" stroke-linecap="round">
       <g id="linkerarm" transform-origin="0 20" transform="rotate(-30)">
@@ -36,292 +36,25 @@
       <circle r="6" fill="green"/>
     </g>
   </svg>
+  <script src="index.js"></script>
   <script>
-    const SWING_FREQ = 1.3 * 2*Math.PI;
-    const ARM_AMPL = 30;
-    const BEEN_AMPL = 15;
-
-    const WINDOW_WIDTH = 800;
-    const WINDOW_HEIGHT = 600;
-    const MIN_OBST_DIST = 300;
-    const JUMP_HEIGHT = 50;
-    const JUMP_DURATION = 0.5;
-
-    const tekening = document.getElementById("tekening");
-    tekening.setAttribute("width", WINDOW_WIDTH);
-    tekening.setAttribute("height", WINDOW_HEIGHT);
-    tekening.setAttribute("viewBox", `${0} ${-WINDOW_HEIGHT/2} ${WINDOW_WIDTH} ${WINDOW_HEIGHT}`);
-
-    // Maak kopie van obstakel en verwijder oorspronkelijke uit tekening
-    const obstakelOrig = document.getElementById("obstakel");
-    const obstakel = obstakelOrig.cloneNode(true);
-    obstakelOrig.remove();
-
-    // Doe hetzelfde voor het leven-tekeningetje
-    const levenOrig = document.getElementById("leven");
-    const leven = levenOrig.cloneNode(true);
-    levenOrig.remove();
-
-    function step(timestamp) {
-      updateModel(timestamp);
-      updateView();
-  
-      if (isGameOver()) {
-        if (isHighScore()) {
-          saveHighScore();
-          updateView();
-        }
-      } else {
-        window.requestAnimationFrame(step);
-      }
-    }
-
-    function updateModel(timestamp) {
-      setTime(timestamp);
-      updatePlayerPosition();
-      removeOldObstacles();
-
-      if (shouldAddNewObstacle()) {
-        addNewObstacle();
-      }
-
-      if (detectCollision()) {
-        removeLeven();
-      }
-    }
-
-    function updateView() {
-      drawObstacles();
-      drawScore();
-      drawHighScore();
-      drawLevens();
-      drawCreature();
-    }
-
-    function setTime(timestamp) {
-      timestamp /= 1000;
-
-      if (GAME.startTime === null) {
-        GAME.startTime = timestamp;
-      }
-
-      GAME.prevTime = GAME.time;
-      GAME.time = timestamp - GAME.startTime;
-    }
-
-    function jumpArc(time) {
-      if (!GAME.jumping) {
-        GAME.prevJumping = false;
-        return 0;
-      }
-      if (!GAME.prevJumping) {
-        GAME.jumpStart = GAME.time;
-        GAME.prevJumping = true;
-      }
-      const t = GAME.time - GAME.jumpStart;
-
-      const y = -4 * JUMP_HEIGHT/Math.pow(JUMP_DURATION, 2) * Math.pow(t, 2) + 4*JUMP_HEIGHT/JUMP_DURATION * t;
-      if (y < 0) {
-        GAME.jumping = false;
-        return 0;
-      }
-      return y;
-    }
-
-    function detectCollision() {
-      let isCollided = false;
-
-      GAME.obstacles.forEach(o => {
-        if (
-          GAME.x >= o.x
-            && GAME.x < o.x + o.width
-            && GAME.y > o.y - o.height
-            && GAME.y <= o.y
-            && !o.collided
-            && !isCollided
-        ) {
-          isCollided = true;
-          o.collided = true;
-        }
-      });
-
-      return isCollided;
-    }
-
-    function isGameOver() {
-      return GAME.levens.length === 0;
-    }
-
-    function removeOldObstacles() {
-      GAME.obstacles = GAME.obstacles.filter(
-        o => {
-          if (o.x < GAME.x - WINDOW_WIDTH/2) {
-            o.el.remove();
-            return false;
-          }
-          return true;
-        }
-      );
-    }
-
-    function shouldAddNewObstacle() {
-      return GAME.obstacles.length === 0
-        || (
-          GAME.x + WINDOW_WIDTH/2
-          - GAME.obstacles[GAME.obstacles.length - 1].x
-          > MIN_OBST_DIST
-      );
-    }
-
-    function addNewObstacle() {
-      const newObs = obstakel.cloneNode(true);
-      tekening.appendChild(newObs);
-      const bbox = newObs.getBBox();
-
-      GAME.obstacles.push({
-        x: GAME.x + WINDOW_WIDTH/2 + Math.random()*MIN_OBST_DIST,
-        y: 0,
-        el: newObs,
-        width: bbox.width,
-        height: bbox.height,
-        collided: false,
-      });
-    }
-
-    function updatePlayerPosition() {
-      const dt = GAME.time - GAME.prevTime;
-      GAME.x += dt * GAME.speed;
-      GAME.y = - jumpArc(GAME.time);
-    }
-
-    function removeLeven() {
-      const el = GAME.levens.pop();
-      el.remove();
-    }
-
-    function drawObstacles() {
-      GAME.obstacles.forEach(o => {
-        o.el.setAttribute("transform", `translate(${o.x - GAME.x + WINDOW_WIDTH/2},${o.y - o.el.getBBox().height})`);
-      });
-    }
-
-    function drawLevens() {
-      GAME.levens.forEach((el, i) => {
-        const bbox = el.getBBox();
-        el.setAttribute("transform", `translate(${WINDOW_WIDTH - 2*(i + 1)*bbox.width},${-WINDOW_HEIGHT/2 + bbox.height})`);
-      });
-    }
-
-    function drawScore() {
-      const score = document.getElementById("score")
-      score.innerHTML = `${isGameOver() ? 'GAME OVER! Score: ' : ''}${getScore()}`;
-    }
-
-    function drawHighScore() {
-      const highScoreEl = document.getElementById("high-score");
-      const highScore = getHighScore();
-
-      if (highScore !== null) {
-        highScoreEl.innerHTML = `High score: ${highScore}`;
-      }
-    }
-
-    function drawCreature() {
-      const wezen = document.getElementById("wezen");
-      wezen.setAttribute("transform", `translate(${WINDOW_WIDTH/2}, ${GAME.y - wezen.getBBox().height})`);
-
+    function updateCreaturePoseView() {
       const rBeen = document.getElementById("rechterbeen");
-      const rBeenAngle = BEEN_AMPL * Math.sin(SWING_FREQ * GAME.time);
+      const rBeenAngle = BEEN_AMPL * Math.sin(SWING_FREQ * MODEL.time);
       rBeen.setAttribute("transform", `rotate(${rBeenAngle})`);
-
+    
       const lBeen = document.getElementById("linkerbeen");
-      const lBeenAngle = BEEN_AMPL * Math.sin(SWING_FREQ * GAME.time + Math.PI);
+      const lBeenAngle = BEEN_AMPL * Math.sin(SWING_FREQ * MODEL.time + Math.PI);
       lBeen.setAttribute("transform", `rotate(${lBeenAngle})`);
-
+    
       const rArm = document.getElementById("rechterarm");
-      const rArmAngle = ARM_AMPL * Math.sin(SWING_FREQ * GAME.time + Math.PI);
+      const rArmAngle = ARM_AMPL * Math.sin(SWING_FREQ * MODEL.time + Math.PI);
       rArm.setAttribute("transform", `rotate(${rArmAngle})`);
-
+    
       const lArm = document.getElementById("linkerarm");
-      const lArmAngle = ARM_AMPL * Math.sin(SWING_FREQ * GAME.time);
+      const lArmAngle = ARM_AMPL * Math.sin(SWING_FREQ * MODEL.time);
       lArm.setAttribute("transform", `rotate(${lArmAngle})`);
     }
-
-    function jump() {
-      GAME.jumping = true;
-    }
-
-    function resetGame() {
-      if (GAME.obstacles !== undefined) {
-        GAME.obstacles.forEach(o => o.el.remove());
-      }
-      if (GAME.levens !== undefined) {
-        GAME.levens.forEach(el => el.remove());
-      }
-      GAME.x = 0;
-      GAME.y = 0;
-      GAME.speed = 500;
-      GAME.obstacles = [];
-      GAME.levens = Array(3).fill(null).map(x => {
-        const el = leven.cloneNode(true);
-        tekening.appendChild(el);
-        return el;
-      });
-
-      GAME.jumping = false;
-      GAME.prevJumping = false;
-      GAME.jumpStart = null;
-
-      GAME.time = null;
-      GAME.startTime = null;
-      GAME.prevTime = null;
-    }
-
-    function restartGame() {
-      resetGame();
-      window.requestAnimationFrame(step);
-    }
-
-    function getScore() {
-      return Math.round(GAME.x / 100);
-    }
-
-    function saveHighScore() {
-      document.cookie = `highScore=${getScore()}`;
-    }
-
-    function isHighScore() {
-      return getScore() > getHighScore();
-    }
-
-    function getHighScore() {
-      const cookieValue = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("highScore="))
-        ?.split("=")[1];
-      return cookieValue !== undefined ?
-          parseInt(cookieValue)
-          : null;
-    }
-
-    function handleClick() {
-      if (isGameOver()) {
-        restartGame();
-      } else {
-        jump();
-      }
-    }
-
-    const GAME = {};
-
-    document.addEventListener('touchstart', handleClick);
-    document.addEventListener('keyup', event => {
-      if (event.code === 'Space') {
-        handleClick()
-      }
-    });
-
-    restartGame();
   </script>
 </body>
 </html>
