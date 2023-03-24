@@ -49,19 +49,19 @@
     <script>
       function updateCreaturePoseView() {
         const rBeen = document.getElementById("rechterbeen");
-        const rBeenAngle = BEEN_AMPL * Math.sin(SWING_FREQ * MODEL.time);
+        const rBeenAngle = 15 * Math.sin(10 * MODEL.time);
         rBeen.setAttribute("transform", `rotate(${rBeenAngle})`);
 
         const lBeen = document.getElementById("linkerbeen");
-        const lBeenAngle = BEEN_AMPL * Math.sin(SWING_FREQ * MODEL.time + Math.PI);
+        const lBeenAngle = 15 * Math.sin(10 * MODEL.time + Math.PI);
         lBeen.setAttribute("transform", `rotate(${lBeenAngle})`);
 
         const rArm = document.getElementById("rechterarm");
-        const rArmAngle = ARM_AMPL * Math.sin(SWING_FREQ * MODEL.time + Math.PI);
+        const rArmAngle = 30 * Math.sin(10 * MODEL.time + Math.PI);
         rArm.setAttribute("transform", `rotate(${rArmAngle})`);
 
         const lArm = document.getElementById("linkerarm");
-        const lArmAngle = ARM_AMPL * Math.sin(SWING_FREQ * MODEL.time);
+        const lArmAngle = 30 * Math.sin(10 * MODEL.time);
         lArm.setAttribute("transform", `rotate(${lArmAngle})`);
       }
     </script>

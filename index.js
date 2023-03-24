@@ -1,7 +1,19 @@
-const tekening = document.getElementById("tekening");
-const creature = document.getElementById("wezen");
-const obstakelOrig = document.getElementById("obstakel");
-const levenOrig = document.getElementById("leven");
+const TEKENING_ID = "tekening";
+const WEZEN_ID = "wezen";
+const OBSTAKEL_ID = "obstakel";
+const LEVEN_ID = "leven";
+const R_BEEN_ID = "rechterbeen";
+const L_BEEN_ID = "linkerbeen";
+const R_ARM_ID = "rechterarm";
+const L_ARM_ID = "linkerarm";
+const SCORE_ID = "score";
+const HIGH_SCORE_ID = "high-score"
+
+
+const tekening = document.getElementById(TEKENING_ID);
+const creature = document.getElementById(WEZEN_ID);
+const obstakelOrig = document.getElementById(OBSTAKEL_ID);
+const levenOrig = document.getElementById(LEVEN_ID);
 
 const origCreatureBBox = creature.getBBox();
 const origObstakelBBox = obstakelOrig.getBBox();
@@ -11,9 +23,6 @@ const WINDOW_WIDTH = tekening.getAttribute("width");
 const WINDOW_HEIGHT = tekening.getAttribute("height");
 const JUMP_HEIGHT = origObstakelBBox.height*2;
 const JUMP_DURATION = 0.5;
-const SWING_FREQ = 1.3 * 2*Math.PI;
-const ARM_AMPL = 30;
-const BEEN_AMPL = 15;
 const MIN_OBST_DIST = origObstakelBBox.width * 15;
 const SPEED = WINDOW_WIDTH/2;
 
@@ -55,10 +64,10 @@ function updateView() {
 }
 
 function initView() {
-  const rBeen = document.getElementById("rechterbeen");
-  const lBeen = document.getElementById("linkerbeen");
-  const rArm = document.getElementById("rechterarm");
-  const lArm = document.getElementById("linkerarm");
+  const rBeen = document.getElementById(R_BEEN_ID);
+  const lBeen = document.getElementById(L_BEEN_ID);
+  const rArm = document.getElementById(R_ARM_ID);
+  const lArm = document.getElementById(L_ARM_ID);
 
   [rBeen, lBeen, rArm, lArm].forEach(el => {
     const bbox = el.getBBox();
@@ -67,8 +76,8 @@ function initView() {
 
   creature.setAttribute("transform-origin", `${origCreatureBBox.x + origCreatureBBox.width/2} ${origCreatureBBox.y + origCreatureBBox.height}`);
 
-  const scoreEl = document.getElementById("score");
-  const hScoreEl = document.getElementById("high-score");
+  const scoreEl = document.getElementById(SCORE_ID);
+  const hScoreEl = document.getElementById(HIGH_SCORE_ID);
   const scoreElBBox = scoreEl.getBBox();
   const hScoreElBBox = hScoreEl.getBBox();
   scoreEl.setAttribute("transform", `translate(${-scoreElBBox.x + WINDOW_WIDTH - 1.5*scoreElBBox.width},${-scoreElBBox.y + WINDOW_HEIGHT - 4*scoreElBBox.height})`);
@@ -195,17 +204,17 @@ function updateObstaclesView() {
 function updateLevensView() {
   MODEL.levens.forEach((el, i) => {
     const bbox = el.getBBox();
-    el.setAttribute("transform", `translate(${WINDOW_WIDTH - 2*(i + 1)*bbox.width - origLevenBBox.x},${-WINDOW_HEIGHT/2 + bbox.height - origLevenBBox.y})`);
+    el.setAttribute("transform", `translate(${WINDOW_WIDTH - 1.5*(i + 1)*bbox.width - origLevenBBox.x},${-WINDOW_HEIGHT/2 + bbox.height - origLevenBBox.y})`);
   });
 }
 
 function updateScoreView() {
-  const score = document.getElementById("score")
+  const score = document.getElementById(SCORE_ID)
   score.innerHTML = `Score: ${getScore()}`;
 }
 
 function updateHighScoreView() {
-  const highScoreEl = document.getElementById("high-score");
+  const highScoreEl = document.getElementById(HIGH_SCORE_ID);
   const highScore = getHighScore();
 
   if (highScore !== null) {
@@ -219,7 +228,7 @@ function updateCreatureView() {
 }
 
 function updateCreaturePositionView() {
-  const wezen = document.getElementById("wezen");
+  const wezen = document.getElementById(WEZEN_ID);
   wezen.setAttribute("transform", `translate(${WINDOW_WIDTH/2 - origCreatureBBox.x}, ${MODEL.y - origCreatureBBox.y - wezen.getBBox().height})`);
 }
 
