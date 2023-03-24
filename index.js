@@ -81,7 +81,9 @@ function initView() {
   const scoreElBBox = scoreEl.getBBox();
   const hScoreElBBox = hScoreEl.getBBox();
   scoreEl.setAttribute("transform", `translate(${-scoreElBBox.x + WINDOW_WIDTH - 1.5*scoreElBBox.width},${-scoreElBBox.y + WINDOW_HEIGHT - 4*scoreElBBox.height})`);
-  hScoreEl.setAttribute("transform", `translate(${-hScoreElBBox.x + WINDOW_WIDTH - 1.5*scoreElBBox.width},${-hScoreElBBox.y + WINDOW_HEIGHT - 2*scoreElBBox.height})`)
+  hScoreEl.setAttribute("transform", `translate(${-hScoreElBBox.x + WINDOW_WIDTH - 1.5*scoreElBBox.width},${-hScoreElBBox.y + WINDOW_HEIGHT - 2*scoreElBBox.height})`);
+  scoreEl.setAttribute("text-anchor", "end");
+  hScoreEl.setAttribute("text-anchor", "end");
 }
 
 function updateModelTime() {
