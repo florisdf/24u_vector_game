@@ -224,7 +224,7 @@ function updateHighScoreView() {
 
 function updateCreatureView() {
   updateCreaturePositionView()
-  updateCreaturePoseView()
+  updateCreaturePoseView(MODEL.time)
 }
 
 function updateCreaturePositionView() {

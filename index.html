@@ -47,21 +47,21 @@
     </svg>
     <script src="index.js"></script>
     <script>
-      function updateCreaturePoseView() {
+      function updateCreaturePoseView(time) {
         const rBeen = document.getElementById("rechterbeen");
-        const rBeenAngle = 15 * Math.sin(10 * MODEL.time);
+        const rBeenAngle = 15 * Math.sin(10 * time);
         rBeen.setAttribute("transform", `rotate(${rBeenAngle})`);
 
         const lBeen = document.getElementById("linkerbeen");
-        const lBeenAngle = 15 * Math.sin(10 * MODEL.time + Math.PI);
+        const lBeenAngle = 15 * Math.sin(10 * time + Math.PI);
         lBeen.setAttribute("transform", `rotate(${lBeenAngle})`);
 
         const rArm = document.getElementById("rechterarm");
-        const rArmAngle = 30 * Math.sin(10 * MODEL.time + Math.PI);
+        const rArmAngle = 30 * Math.sin(10 * time + Math.PI);
         rArm.setAttribute("transform", `rotate(${rArmAngle})`);
 
         const lArm = document.getElementById("linkerarm");
-        const lArmAngle = 30 * Math.sin(10 * MODEL.time);
+        const lArmAngle = 30 * Math.sin(10 * time);
         lArm.setAttribute("transform", `rotate(${lArmAngle})`);
       }
     </script>
