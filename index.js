@@ -1,6 +1,6 @@
 const TEKENING_ID = "tekening";
 const WEZEN_ID = "wezen";
-const OBSTAKEL_ID = "obstakel";
+const OBSTAKEL_ID = "bom";
 const LEVEN_ID = "leven";
 const R_BEEN_ID = "rechterbeen";
 const L_BEEN_ID = "linkerbeen";
@@ -19,11 +19,21 @@ const origCreatureBBox = creature.getBBox();
 const origObstakelBBox = obstakelOrig.getBBox();
 const origLevenBBox = levenOrig.getBBox();
 
-const WINDOW_WIDTH = tekening.getAttribute("width");
-const WINDOW_HEIGHT = tekening.getAttribute("height");
-const JUMP_HEIGHT = origObstakelBBox.height*2;
+
+const WINDOW_WIDTH = 600;
+const WINDOW_HEIGHT = 400;
+
+const CREATURE_HEIGHT = 1/4 * WINDOW_HEIGHT;
+const CREATURE_SCALE = CREATURE_HEIGHT/origCreatureBBox.height;
+const CREATURE_WIDTH = CREATURE_SCALE*origCreatureBBox.width;
+
+const OBSTAKEL_HEIGHT = 1/10 * WINDOW_HEIGHT;
+const OBSTAKEL_SCALE = OBSTAKEL_HEIGHT/origObstakelBBox.height;
+const OBSTAKEL_WIDTH = OBSTAKEL_SCALE * origObstakelBBox.width;
+
+const JUMP_HEIGHT = OBSTAKEL_HEIGHT*2;
 const JUMP_DURATION = 0.5;
-const MIN_OBST_DIST = origObstakelBBox.width * 15;
+const MIN_OBST_DIST = OBSTAKEL_WIDTH * 15;
 const SPEED = WINDOW_WIDTH/2;
 
 const obstakel = obstakelOrig.cloneNode(true);
@@ -31,7 +41,7 @@ const leven = levenOrig.cloneNode(true);
 
 obstakelOrig.remove();
 levenOrig.remove();
-tekening.setAttribute("viewBox", `${0} ${-WINDOW_HEIGHT/2} ${WINDOW_WIDTH} ${WINDOW_HEIGHT}`);
+//tekening.setAttribute("viewBox", `${0} ${0} ${WINDOW_WIDTH} ${WINDOW_HEIGHT}`);
 
 function step() {
   updateModel();
@@ -64,6 +74,11 @@ function updateView() {
 }
 
 function initView() {
+  creature.setAttribute("x", WINDOW_WIDTH/2);
+  creature.setAttribute("y", WINDOW_HEIGHT);
+  creature.setAttribute("transform-origin", `${WINDOW_WIDTH/2} ${WINDOW_HEIGHT}`);
+  updateCreaturePositionView();
+
   const rBeen = document.getElementById(R_BEEN_ID);
   const lBeen = document.getElementById(L_BEEN_ID);
   const rArm = document.getElementById(R_ARM_ID);
@@ -74,16 +89,18 @@ function initView() {
     el.setAttribute("transform-origin", `${bbox.x + bbox.width/2} ${bbox.y + bbox.height/10}`);
   })
 
-  creature.setAttribute("transform-origin", `${origCreatureBBox.x + origCreatureBBox.width/2} ${origCreatureBBox.y + origCreatureBBox.height}`);
-
   const scoreEl = document.getElementById(SCORE_ID);
   const hScoreEl = document.getElementById(HIGH_SCORE_ID);
   const scoreElBBox = scoreEl.getBBox();
   const hScoreElBBox = hScoreEl.getBBox();
-  scoreEl.setAttribute("transform", `translate(${-scoreElBBox.x + WINDOW_WIDTH - 1.5*scoreElBBox.width},${-scoreElBBox.y + WINDOW_HEIGHT - 4*scoreElBBox.height})`);
-  hScoreEl.setAttribute("transform", `translate(${-hScoreElBBox.x + WINDOW_WIDTH - 1.5*scoreElBBox.width},${-hScoreElBBox.y + WINDOW_HEIGHT - 2*scoreElBBox.height})`);
-  scoreEl.setAttribute("text-anchor", "end");
-  hScoreEl.setAttribute("text-anchor", "end");
+  scoreEl.setAttribute("x", "0");
+  scoreEl.setAttribute("y", "0");
+  hScoreEl.setAttribute("x", "0");
+  hScoreEl.setAttribute("y", "0");
+  scoreEl.setAttribute("transform", `translate(0,${scoreElBBox.height})`);
+  hScoreEl.setAttribute("transform", `translate(0,${2*scoreElBBox.height})`);
+  scoreEl.setAttribute("text-anchor", "start");
+  hScoreEl.setAttribute("text-anchor", "start");
 }
 
 function updateModelTime() {
@@ -142,8 +159,8 @@ function detectCollision() {
   MODEL.obstacles.forEach(o => {
     if (
       MODEL.x >= o.x
-        && MODEL.x < o.x + o.width
-        && MODEL.y > o.y - o.height
+        && MODEL.x < o.x + OBSTAKEL_WIDTH
+        && MODEL.y > o.y - OBSTAKEL_HEIGHT
         && MODEL.y <= o.y
         && !o.collided
         && !isCollided
@@ -186,8 +203,6 @@ function addNewObstacle() {
     x: MODEL.x + WINDOW_WIDTH/2 + Math.random()*MIN_OBST_DIST,
     y: 0,
     el: newObs,
-    width: bbox.width,
-    height: bbox.height,
     collided: false,
   });
 }
@@ -199,14 +214,19 @@ function removeLeven() {
 
 function updateObstaclesView() {
   MODEL.obstacles.forEach(o => {
-    o.el.setAttribute("transform", `translate(${o.x - MODEL.x + WINDOW_WIDTH/2 - origObstakelBBox.x},${o.y - o.el.getBBox().height - origObstakelBBox.y})`);
+    o.el.setAttribute("x", "0");
+    o.el.setAttribute("y", "0");
+    o.el.setAttribute("transform-origin", `0 0`);
+    o.el.setAttribute("transform", `translate(${WINDOW_WIDTH/2 + o.x - MODEL.x},${WINDOW_HEIGHT - OBSTAKEL_HEIGHT}) scale(${OBSTAKEL_SCALE})`);
   });
 }
 
 function updateLevensView() {
   MODEL.levens.forEach((el, i) => {
     const bbox = el.getBBox();
-    el.setAttribute("transform", `translate(${WINDOW_WIDTH - 1.5*(i + 1)*bbox.width - origLevenBBox.x},${-WINDOW_HEIGHT/2 + bbox.height - origLevenBBox.y})`);
+    el.setAttribute("x", "0");
+    el.setAttribute("y", "0");
+    el.setAttribute("transform", `translate(${WINDOW_WIDTH - 1.5*(i + 1)*bbox.width},${bbox.height})`);
   });
 }
 
@@ -230,8 +250,7 @@ function updateCreatureView() {
 }
 
 function updateCreaturePositionView() {
-  const wezen = document.getElementById(WEZEN_ID);
-  wezen.setAttribute("transform", `translate(${WINDOW_WIDTH/2 - origCreatureBBox.x}, ${MODEL.y - origCreatureBBox.y - wezen.getBBox().height})`);
+  creature.setAttribute("transform", `translate(${-CREATURE_WIDTH/2},${MODEL.y - CREATURE_HEIGHT}) scale(${CREATURE_SCALE})`);
 }
 
 function jump() {
