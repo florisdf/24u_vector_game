@@ -20,8 +20,8 @@ const origObstakelBBox = obstakelOrig.getBBox();
 const origLevenBBox = levenOrig.getBBox();
 
 
-const WINDOW_WIDTH = 600;
-const WINDOW_HEIGHT = 400;
+const WINDOW_WIDTH = screen.width * 2/3;
+const WINDOW_HEIGHT = screen.height * 2/3;
 
 const CREATURE_HEIGHT = 1/4 * WINDOW_HEIGHT;
 const CREATURE_SCALE = CREATURE_HEIGHT/origCreatureBBox.height;
@@ -30,6 +30,10 @@ const CREATURE_WIDTH = CREATURE_SCALE*origCreatureBBox.width;
 const OBSTAKEL_HEIGHT = 1/10 * WINDOW_HEIGHT;
 const OBSTAKEL_SCALE = OBSTAKEL_HEIGHT/origObstakelBBox.height;
 const OBSTAKEL_WIDTH = OBSTAKEL_SCALE * origObstakelBBox.width;
+
+const LEVEN_HEIGHT = 1/10 * WINDOW_HEIGHT;
+const LEVEN_SCALE = LEVEN_HEIGHT/origLevenBBox.height;
+const LEVEN_WIDTH = LEVEN_SCALE * origLevenBBox.width;
 
 const JUMP_HEIGHT = OBSTAKEL_HEIGHT*2;
 const JUMP_DURATION = 0.5;
@@ -41,6 +45,8 @@ const leven = levenOrig.cloneNode(true);
 
 obstakelOrig.remove();
 levenOrig.remove();
+tekening.setAttribute("height", WINDOW_HEIGHT);
+tekening.setAttribute("width", WINDOW_WIDTH);
 //tekening.setAttribute("viewBox", `${0} ${0} ${WINDOW_WIDTH} ${WINDOW_HEIGHT}`);
 
 function step() {
@@ -74,9 +80,6 @@ function updateView() {
 }
 
 function initView() {
-  creature.setAttribute("x", WINDOW_WIDTH/2);
-  creature.setAttribute("y", WINDOW_HEIGHT);
-  creature.setAttribute("transform-origin", `${WINDOW_WIDTH/2} ${WINDOW_HEIGHT}`);
   updateCreaturePositionView();
 
   const rBeen = document.getElementById(R_BEEN_ID);
@@ -93,12 +96,8 @@ function initView() {
   const hScoreEl = document.getElementById(HIGH_SCORE_ID);
   const scoreElBBox = scoreEl.getBBox();
   const hScoreElBBox = hScoreEl.getBBox();
-  scoreEl.setAttribute("x", "0");
-  scoreEl.setAttribute("y", "0");
-  hScoreEl.setAttribute("x", "0");
-  hScoreEl.setAttribute("y", "0");
-  scoreEl.setAttribute("transform", `translate(0,${scoreElBBox.height})`);
-  hScoreEl.setAttribute("transform", `translate(0,${2*scoreElBBox.height})`);
+  scoreEl.setAttribute("transform", `translate(0,${scoreElBBox.height}) translate(${-scoreElBBox.x},${-scoreElBBox.y})`);
+  hScoreEl.setAttribute("transform", `translate(0,${2*scoreElBBox.height}) translate(${-hScoreElBBox.x},${-hScoreElBBox.y})`);
   scoreEl.setAttribute("text-anchor", "start");
   hScoreEl.setAttribute("text-anchor", "start");
 }
@@ -214,19 +213,15 @@ function removeLeven() {
 
 function updateObstaclesView() {
   MODEL.obstacles.forEach(o => {
-    o.el.setAttribute("x", "0");
-    o.el.setAttribute("y", "0");
     o.el.setAttribute("transform-origin", `0 0`);
-    o.el.setAttribute("transform", `translate(${WINDOW_WIDTH/2 + o.x - MODEL.x},${WINDOW_HEIGHT - OBSTAKEL_HEIGHT}) scale(${OBSTAKEL_SCALE})`);
+    o.el.setAttribute("transform", `translate(${WINDOW_WIDTH/2 + o.x - MODEL.x},${WINDOW_HEIGHT - OBSTAKEL_HEIGHT}) scale(${OBSTAKEL_SCALE}) translate(${-origObstakelBBox.x},${-origObstakelBBox.y})`);
   });
 }
 
 function updateLevensView() {
   MODEL.levens.forEach((el, i) => {
-    const bbox = el.getBBox();
-    el.setAttribute("x", "0");
-    el.setAttribute("y", "0");
-    el.setAttribute("transform", `translate(${WINDOW_WIDTH - 1.5*(i + 1)*bbox.width},${bbox.height})`);
+    el.setAttribute("transform-origin", `0 0`);
+    el.setAttribute("transform", `translate(${WINDOW_WIDTH - 1.5*(i + 1)*LEVEN_WIDTH},${LEVEN_HEIGHT}) scale(${LEVEN_SCALE}) translate(${-origLevenBBox.x},${-origLevenBBox.y})`);
   });
 }
 
@@ -250,7 +245,8 @@ function updateCreatureView() {
 }
 
 function updateCreaturePositionView() {
-  creature.setAttribute("transform", `translate(${-CREATURE_WIDTH/2},${MODEL.y - CREATURE_HEIGHT}) scale(${CREATURE_SCALE})`);
+  creature.setAttribute("transform-origin", `0 0`);
+  creature.setAttribute("transform", `translate(${WINDOW_WIDTH/2 - CREATURE_WIDTH/2},${WINDOW_HEIGHT + MODEL.y - CREATURE_HEIGHT}) scale(${CREATURE_SCALE}) translate(${-origCreatureBBox.x},${-origCreatureBBox.y})`);
 }
 
 function jump() {
