@@ -47,7 +47,6 @@ obstakelOrig.remove();
 levenOrig.remove();
 tekening.setAttribute("height", WINDOW_HEIGHT);
 tekening.setAttribute("width", WINDOW_WIDTH);
-//tekening.setAttribute("viewBox", `${0} ${0} ${WINDOW_WIDTH} ${WINDOW_HEIGHT}`);
 
 function step() {
   updateModel();
@@ -94,12 +93,12 @@ function initView() {
 
   const scoreEl = document.getElementById(SCORE_ID);
   const hScoreEl = document.getElementById(HIGH_SCORE_ID);
+  scoreEl.setAttribute("text-anchor", "start");
+  hScoreEl.setAttribute("text-anchor", "start");
   const scoreElBBox = scoreEl.getBBox();
   const hScoreElBBox = hScoreEl.getBBox();
   scoreEl.setAttribute("transform", `translate(0,${scoreElBBox.height}) translate(${-scoreElBBox.x},${-scoreElBBox.y})`);
   hScoreEl.setAttribute("transform", `translate(0,${2*scoreElBBox.height}) translate(${-hScoreElBBox.x},${-hScoreElBBox.y})`);
-  scoreEl.setAttribute("text-anchor", "start");
-  hScoreEl.setAttribute("text-anchor", "start");
 }
 
 function updateModelTime() {
