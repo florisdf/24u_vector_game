@@ -20,8 +20,8 @@ const origObstakelBBox = obstakelOrig.getBBox();
 const origLevenBBox = levenOrig.getBBox();
 
 
-const WINDOW_WIDTH = screen.width * 2/3;
-const WINDOW_HEIGHT = screen.height * 2/3;
+const WINDOW_WIDTH = Math.min(screen.width, 600);
+const WINDOW_HEIGHT = Math.min(screen.height, 400);
 
 const CREATURE_HEIGHT = 1/4 * WINDOW_HEIGHT;
 const CREATURE_SCALE = CREATURE_HEIGHT/origCreatureBBox.height;
@@ -174,7 +174,7 @@ function detectCollision() {
 function removeOldObstacles() {
   MODEL.obstacles = MODEL.obstacles.filter(
     o => {
-      if (o.x < MODEL.x - WINDOW_WIDTH/2) {
+      if (o.x < MODEL.x - WINDOW_WIDTH/2 - OBSTAKEL_WIDTH) {
         o.el.remove();
         return false;
       }
