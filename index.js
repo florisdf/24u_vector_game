@@ -1,16 +1,15 @@
-const TEKENING_ID = "tekening";
 const WEZEN_ID = "wezen";
-const OBSTAKEL_ID = "bom";
-const LEVEN_ID = "leven";
 const R_BEEN_ID = "rechterbeen";
 const L_BEEN_ID = "linkerbeen";
 const R_ARM_ID = "rechterarm";
 const L_ARM_ID = "linkerarm";
 const SCORE_ID = "score";
-const HIGH_SCORE_ID = "high-score"
+const HIGH_SCORE_ID = "high-score";
+const OBSTAKEL_ID = "bom";
+const LEVEN_ID = "leven";
 
 
-const tekening = document.getElementById(TEKENING_ID);
+const tekening = document.getElementsByTagName("svg")[0];
 const creature = document.getElementById(WEZEN_ID);
 const obstakelOrig = document.getElementById(OBSTAKEL_ID);
 const levenOrig = document.getElementById(LEVEN_ID);
