@@ -320,7 +320,7 @@ function handleClick() {
 const MODEL = {};
 
 document.addEventListener('touchstart', handleClick);
-document.addEventListener('keyup', event => {
+document.addEventListener('keydown', event => {
   if (event.code === 'Space') {
     handleClick()
   }
