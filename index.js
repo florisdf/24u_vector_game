@@ -8,11 +8,13 @@ const HIGH_SCORE_ID = "high-score";
 const OBSTAKEL_ID = "bom";
 const LEVEN_ID = "leven";
 
+const WINDOW_WIDTH = Math.min(screen.width, 600);
+const WINDOW_HEIGHT = Math.min(screen.height, 400);
 
 const svgNS = "http://www.w3.org/2000/svg";
 
 const tekening = document.getElementsByTagName("svg")[0];
-tekening.setAttributeNS(null, "viewBox", "");
+tekening.setAttributeNS(null, "viewBox", `0 0 ${WINDOW_WIDTH} ${WINDOW_HEIGHT}`);
 
 const creature = document.getElementById(WEZEN_ID);
 
@@ -68,9 +70,6 @@ const origCreatureBBox = creature.getBBox();
 const origObstakelBBox = obstakelOrig.getBBox();
 const origLevenBBox = levenOrig.getBBox();
 
-const WINDOW_WIDTH = Math.min(screen.width, 600);
-const WINDOW_HEIGHT = Math.min(screen.height, 400);
-
 const CREATURE_HEIGHT = 1/4 * WINDOW_HEIGHT;
 const CREATURE_SCALE = CREATURE_HEIGHT/origCreatureBBox.height;
 const CREATURE_WIDTH = CREATURE_SCALE*origCreatureBBox.width;
@@ -90,6 +89,9 @@ const SPEED = WINDOW_WIDTH/2;
 
 const obstakel = obstakelOrig.cloneNode(true);
 const leven = levenOrig.cloneNode(true);
+
+const MODEL = {};
+resetGame();
 
 obstakelOrig.remove();
 levenOrig.remove();
@@ -376,8 +378,6 @@ function handleClick() {
     jump();
   }
 }
-
-const MODEL = {};
 
 document.addEventListener('touchstart', handleClick);
 document.addEventListener('keydown', event => {
