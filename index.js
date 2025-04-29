@@ -9,15 +9,64 @@ const OBSTAKEL_ID = "bom";
 const LEVEN_ID = "leven";
 
 
+const svgNS = "http://www.w3.org/2000/svg";
+
 const tekening = document.getElementsByTagName("svg")[0];
+tekening.setAttributeNS(null, "viewBox", "");
+
 const creature = document.getElementById(WEZEN_ID);
-const obstakelOrig = document.getElementById(OBSTAKEL_ID);
-const levenOrig = document.getElementById(LEVEN_ID);
+
+const obstakelOrig = document.createElementNS(svgNS, "g");
+obstakelOrig.id = OBSTAKEL_ID;
+obstakelOrig.innerHTML = `
+    <g transform="scale(0.5)">
+    <ellipse cx="579.77" cy="499.62" fill="#000000" id="svg_22" rx="22.52" ry="22.52" stroke-width="0"/>
+    <path d="m579.39,473.28c0,-20.61 19.85,-23.66 19.85,-23.66" fill="none" id="svg_24" stroke="#999999" stroke-width="2"/>
+    <rect fill="#000000" height="12.21" id="svg_23" stroke-width="0" width="12.21" x="573.66" y="468.7"/>
+    </g>
+`;
+tekening.appendChild(obstakelOrig);
+const levenOrig = document.createElementNS(svgNS, "g");
+levenOrig.id = LEVEN_ID;
+levenOrig.innerHTML = `
+    <g transform="scale(0.6)">
+      <path d="m764.12,103.05c0,-13.74 -26.72,-19.08 -26.72,1.53c0,20.61 23.67,16.79 24.43,34.35" fill="#FFAAB8" id="svg_26"/>
+      <path d="m758.78,103.05c0,-13.74 24.43,-19.08 24.43,1.53c0,20.61 -21.64,16.79 -22.34,34.35" fill="#FFAAB8" id="svg_27"/>
+    </g>
+`;
+tekening.appendChild(levenOrig);
+
+
+const scoreEl = document.createElementNS(svgNS, "text");
+scoreEl.id = SCORE_ID;
+scoreEl.setAttributeNS(null, "x", "789");
+scoreEl.setAttributeNS(null, "y", "33");
+scoreEl.setAttributeNS(null, "font-size", "24");
+scoreEl.setAttributeNS(null, "font-family", "&#x27;Quicksand&#x27;");
+scoreEl.setAttributeNS(null, "font-weight", "normal");
+scoreEl.setAttributeNS(null, "text-anchor", "end");
+scoreEl.setAttributeNS(null, "fill", "#000000");
+const scoreTextNode = document.createTextNode("Score: 0");
+scoreEl.appendChild(scoreTextNode);
+tekening.appendChild(scoreEl);
+
+const hScoreEl = document.createElementNS(svgNS, "text");
+hScoreEl.id = HIGH_SCORE_ID;
+hScoreEl.setAttributeNS(null, "x", "789");
+hScoreEl.setAttributeNS(null, "y", "67");
+hScoreEl.setAttributeNS(null, "font-size", "24");
+hScoreEl.setAttributeNS(null, "font-family", "&#x27;Quicksand&#x27;");
+hScoreEl.setAttributeNS(null, "font-weight", "normal");
+hScoreEl.setAttributeNS(null, "text-anchor", "end");
+hScoreEl.setAttributeNS(null, "fill", "#000000");
+const hScoreTextNode = document.createTextNode("High Score: 0");
+hScoreEl.appendChild(hScoreTextNode);
+// tekening.appendChild(hScoreEl);
 
 const origCreatureBBox = creature.getBBox();
+
 const origObstakelBBox = obstakelOrig.getBBox();
 const origLevenBBox = levenOrig.getBBox();
-
 
 const WINDOW_WIDTH = Math.min(screen.width, 600);
 const WINDOW_HEIGHT = Math.min(screen.height, 400);
@@ -90,8 +139,6 @@ function initView() {
     el.setAttribute("transform-origin", `${bbox.x + bbox.width/2} ${bbox.y + bbox.height/10}`);
   })
 
-  const scoreEl = document.getElementById(SCORE_ID);
-  const hScoreEl = document.getElementById(HIGH_SCORE_ID);
   scoreEl.setAttribute("text-anchor", "start");
   hScoreEl.setAttribute("text-anchor", "start");
   const scoreElBBox = scoreEl.getBBox();
@@ -229,11 +276,10 @@ function updateScoreView() {
 }
 
 function updateHighScoreView() {
-  const highScoreEl = document.getElementById(HIGH_SCORE_ID);
   const highScore = getHighScore();
 
   if (highScore !== null) {
-    highScoreEl.innerHTML = `High score: ${highScore}`;
+    hScoreEl.innerHTML = `High score: ${highScore}`;
   }
 }
 
@@ -286,8 +332,28 @@ function getScore() {
   return Math.round(MODEL.x / 100);
 }
 
+function setCookie(name, value, hours) {
+    var expires = "";
+    if (hours) {
+        var date = new Date();
+        date.setTime(date.getTime() + (hours*60*60*1000));
+        expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + (value || "")  + expires + "; path=/";
+}
+function getCookie(name) {
+    var nameEQ = name + "=";
+    var ca = document.cookie.split(';');
+    for(var i=0;i < ca.length;i++) {
+        var c = ca[i];
+        while (c.charAt(0)==' ') c = c.substring(1,c.length);
+        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+    }
+    return null;
+}
+
 function saveHighScore() {
-  document.cookie = `highScore=${getScore()}`;
+  setCookie("highScore", `${getScore()}`, 24);
 }
 
 function isHighScore() {
@@ -295,13 +361,8 @@ function isHighScore() {
 }
 
 function getHighScore() {
-  const cookieValue = document.cookie
-    .split("; ")
-    .find((row) => row.startsWith("highScore="))
-    ?.split("=")[1];
-  return cookieValue !== undefined ?
-      parseInt(cookieValue)
-      : null;
+  const cookieValue = getCookie("highScore");
+  return cookieValue !== null ?  parseInt(cookieValue) : 0;
 }
 
 function isGameOver() {
